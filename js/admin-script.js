@@ -78,14 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // --- 檢查實際有效狀態 (用於顯示) ---
                 let displayIsActive = serial.is_active; // 預設使用 DB 值
+                // const now = new Date(); // now 移到迴圈外提高效率
+
                 // 檢查固定到期日
                 if (serial.expires_at) {
                     const expiresDate = new Date(serial.expires_at);
-                    if (expiresDate < now) {
+                    if (!isNaN(expiresDate.getTime()) && expiresDate < now) {
                         displayIsActive = false; // 如果已過固定到期日，則視為無效
                     }
                 }
-                // (更複雜的邏輯可以檢查 activated_at + duration_minutes，但暫不加入)
+
+                // 如果還沒被固定到期日判定為無效，再檢查啟用時間+持續時間
+                if (displayIsActive && serial.activated_at && serial.duration_minutes) {
+                    const activatedDate = new Date(serial.activated_at);
+                    const durationMillis = serial.duration_minutes * 60 * 1000; // 分鐘轉毫秒
+                    if (!isNaN(activatedDate.getTime())) {
+                        const calculatedExpiry = new Date(activatedDate.getTime() + durationMillis);
+                        if (calculatedExpiry < now) {
+                            displayIsActive = false; // 如果 啟用時間+持續時間 已過，則視為無效
+                        }
+                    }
+                }
 
                 // --- 渲染表格行 ---
                 row.innerHTML = `
