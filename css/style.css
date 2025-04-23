@@ -1,0 +1,153 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+#refresh-list-btn {
+    background-color: #337ab7;
+    margin-bottom: 15px;
+}
+
+#refresh-list-btn:hover {
+    background-color: #286090;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#add-status-msg,
+#list-status-msg {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.status-success {
+    color: green;
+}
+
+.status-error {
+    color: red;
+}
+
+.action-btn {
+    margin-right: 5px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+}
+
+.btn-disable {
+    background-color: #f0ad4e;
+}
+.btn-disable:hover {
+    background-color: #ec971f;
+}
+
+.btn-enable {
+    background-color: #5bc0de;
+}
+.btn-enable:hover {
+    background-color: #31b0d5;
+}
+
+.btn-delete {
+    background-color: #d9534f;
+}
+.btn-delete:hover {
+    background-color: #c9302c;
+}
+
+/* Login Section Specific Styles */
+#login-section input[type="text"],
+#login-section input[type="password"] {
+    /* Inherit general input styles, maybe adjust width if needed */
+    width: calc(100% - 22px); /* Example: Keep full width */
+}
+
+#login-btn {
+    /* Use a different color for login button */
+    background-color: #007bff;
+}
+
+#login-btn:hover {
+    background-color: #0056b3;
+}
+
+#login-status-msg {
+    margin-top: 15px;
+    font-weight: bold;
+    color: red; /* Default to error color */
+}
+
+/* Hide admin content initially */
+#admin-content {
+    display: none; /* Ensure it's hidden by default via CSS too */
+} 

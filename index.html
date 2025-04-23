@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>序號管理</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>序號管理</h1>
+
+    <section id="login-section">
+        <h2>登入</h2>
+        <div>
+            <label for="username">帳號:</label>
+            <input type="text" id="username">
+        </div>
+        <div>
+            <label for="password">密碼:</label>
+            <input type="password" id="password">
+        </div>
+        <button id="login-btn">登入</button>
+        <p id="login-status-msg"></p>
+    </section>
+
+    <div id="admin-content" style="display: none;">
+        <section id="add-serial-section">
+            <h2>新增序號</h2>
+            <div>
+                <label for="new-serial-code">序號:</label>
+                <input type="text" id="new-serial-code" required>
+            </div>
+            <div>
+                <label for="new-serial-duration">有效分鐘數:</label>
+                <input type="number" id="new-serial-duration" min="1">
+            </div>
+            <div>
+                <label for="new-serial-expires">固定到期日:</label>
+                <input type="datetime-local" id="new-serial-expires">
+            </div>
+            <button id="add-serial-btn">新增</button>
+            <p id="add-status-msg"></p>
+        </section>
+
+        <section id="list-serials-section">
+            <h2>序號列表</h2>
+            <button id="refresh-list-btn">重新整理</button>
+            <p id="list-status-msg"></p>
+            <table id="serials-table">
+                <thead>
+                    <tr>
+                        <th>序號</th>
+                        <th>有效分鐘</th>
+                        <th>啟用時間</th>
+                        <th>固定到期</th>
+                        <th>是否有效</th>
+                        <th>建立時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="serials-table-body">
+                    <tr>
+                        <td colspan="7">載入中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script src="js/admin-script.js"></script>
+</body>
+</html> 
