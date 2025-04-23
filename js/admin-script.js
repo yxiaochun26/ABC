@@ -21,6 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 函數 ---
 
     /**
+     * 顯示狀態訊息
+     * @param {HTMLElement} element 顯示訊息的元素
+     * @param {string} message 訊息內容
+     * @param {boolean} isSuccess 是否為成功訊息
+     */
+    const showStatusMessage = (element, message, isSuccess) => {
+        element.textContent = message;
+        element.className = isSuccess ? 'status-success' : 'status-error';
+    };
+
+    /**
      * 格式化日期時間字串 (或返回空字串)
      * @param {string | null} dateString ISO 格式日期字串
      * @returns {string}
@@ -29,10 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!dateString) return '';
         try {
             const date = new Date(dateString);
-            // 檢查是否為有效日期
             if (isNaN(date.getTime())) return '無效日期';
-            // 使用 toLocaleString 格式化，可根據需要調整選項
-            return date.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }); // 改用12小時制
         } catch (error) {
             console.error('Error formatting date:', error);
             return '格式化錯誤';
@@ -43,14 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * 從後端獲取序號列表並顯示在表格中
      */
     const fetchAndDisplaySerials = async () => {
-        listStatusMsg.textContent = '正在載入列表...';
-        listStatusMsg.className = '';
-        serialsTableBody.innerHTML = '<tr><td colspan="7">載入中...</td></tr>'; // 清空並顯示載入中
+        showStatusMessage(listStatusMsg, '正在載入列表...', true);
+        serialsTableBody.innerHTML = '<tr><td colspan="7">載入中...</td></tr>';
 
         try {
             const response = await fetch('/api/list-serials');
             if (!response.ok) {
-                throw new Error(`HTTP 錯誤！ 狀態: ${response.status}`);
+                const errorData = await response.json().catch(() => ({})); // Try to parse error
+                throw new Error(`HTTP 錯誤！ 狀態: ${response.status}. ${errorData.message || ''}`);
             }
             const serials = await response.json();
 
@@ -62,17 +71,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const now = new Date(); // 當前時間，用於比較
+
             serials.forEach(serial => {
                 const row = serialsTableBody.insertRow();
+
+                // --- 檢查實際有效狀態 (用於顯示) ---
+                let displayIsActive = serial.is_active; // 預設使用 DB 值
+                // 檢查固定到期日
+                if (serial.expires_at) {
+                    const expiresDate = new Date(serial.expires_at);
+                    if (expiresDate < now) {
+                        displayIsActive = false; // 如果已過固定到期日，則視為無效
+                    }
+                }
+                // (更複雜的邏輯可以檢查 activated_at + duration_minutes，但暫不加入)
+
+                // --- 渲染表格行 ---
                 row.innerHTML = `
                     <td>${serial.code || ''}</td>
                     <td>${serial.duration_minutes || '-'}</td>
                     <td>${formatDateTime(serial.activated_at)}</td>
                     <td>${formatDateTime(serial.expires_at)}</td>
-                    <td>${serial.is_active ? '是' : '否'}</td>
+                    <td>${displayIsActive ? '是' : '<span style="color:red;">否</span>'}</td>
                     <td>${formatDateTime(serial.created_at)}</td>
                     <td>
-                        <button class="action-btn ${serial.is_active ? 'btn-disable' : 'btn-enable'}" data-code="${serial.code}">
+                        <button
+                            class="action-btn ${serial.is_active ? 'btn-disable' : 'btn-enable'}"
+                            data-code="${serial.code}"
+                            data-current-active="${serial.is_active}">
                             ${serial.is_active ? '停用' : '啟用'}
                         </button>
                         <button class="action-btn btn-delete" data-code="${serial.code}">刪除</button>
@@ -80,14 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             });
 
-            listStatusMsg.textContent = `列表載入成功，共 ${serials.length} 個序號。`;
-            listStatusMsg.className = 'status-success';
+            showStatusMessage(listStatusMsg, `列表載入成功，共 ${serials.length} 個序號。`, true);
 
         } catch (error) {
             console.error('載入序號列表失敗:', error);
-            serialsTableBody.innerHTML = '<tr><td colspan="7">載入列表失敗，請稍後再試。</td></tr>';
-            listStatusMsg.textContent = `載入列表失敗: ${error.message}`;
-            listStatusMsg.className = 'status-error';
+            serialsTableBody.innerHTML = '<tr><td colspan="7">載入列表失敗，請檢查網路或後端服務。</td></tr>';
+            showStatusMessage(listStatusMsg, `載入列表失敗: ${error.message}`, false);
         }
     };
 
@@ -97,16 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const addSerial = async () => {
         const code = newSerialCodeInput.value.trim();
         const duration = newSerialDurationInput.value ? parseInt(newSerialDurationInput.value, 10) : null;
-        const expires = newSerialExpiresInput.value ? newSerialExpiresInput.value : null; // 直接傳遞字串
+        const expires = newSerialExpiresInput.value ? newSerialExpiresInput.value : null;
 
         if (!code) {
-            addStatusMsg.textContent = '序號欄位不能為空！';
-            addStatusMsg.className = 'status-error';
+            showStatusMessage(addStatusMsg, '序號欄位不能為空！', false);
             return;
         }
 
-        addStatusMsg.textContent = '正在新增序號...';
-        addStatusMsg.className = '';
+        showStatusMessage(addStatusMsg, '正在新增序號...', true);
 
         try {
             const response = await fetch('/api/add-serial', {
@@ -120,22 +143,68 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                addStatusMsg.textContent = result.message || '序號新增成功！';
-                addStatusMsg.className = 'status-success';
-                // 清空輸入框
+                showStatusMessage(addStatusMsg, result.message || '序號新增成功！', true);
                 newSerialCodeInput.value = '';
                 newSerialDurationInput.value = '';
                 newSerialExpiresInput.value = '';
-                // 刷新列表
-                fetchAndDisplaySerials();
+                fetchAndDisplaySerials(); // 刷新列表
             } else {
                 throw new Error(result.message || `HTTP 錯誤！ 狀態: ${response.status}`);
             }
 
         } catch (error) {
             console.error('新增序號失敗:', error);
-            addStatusMsg.textContent = `新增序號失敗: ${error.message}`;
-            addStatusMsg.className = 'status-error';
+            showStatusMessage(addStatusMsg, `新增序號失敗: ${error.message}`, false);
+        }
+    };
+
+    /**
+     * 更新序號狀態 (啟用/停用)
+     * @param {string} code 序號
+     * @param {boolean} newIsActive 新的狀態
+     */
+    const updateSerialStatus = async (code, newIsActive) => {
+        showStatusMessage(listStatusMsg, `正在更新序號 ${code} 狀態...`, true);
+        try {
+            const response = await fetch('/api/update-serial-status', {
+                method: 'POST', // 或 'PUT'
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, isActive: newIsActive })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || `HTTP 錯誤: ${response.status}`);
+            }
+            showStatusMessage(listStatusMsg, result.message || '狀態更新成功！', true);
+            fetchAndDisplaySerials(); // 刷新列表
+        } catch (error) {
+            console.error(`更新序號 ${code} 狀態失敗:`, error);
+            showStatusMessage(listStatusMsg, `更新序號 ${code} 狀態失敗: ${error.message}`, false);
+        }
+    };
+
+    /**
+     * 刪除序號
+     * @param {string} code 序號
+     */
+    const deleteSerial = async (code) => {
+        showStatusMessage(listStatusMsg, `正在刪除序號 ${code}...`, true);
+        try {
+            const response = await fetch('/api/delete-serial', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }) // 將 code 放在 body 中
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                 // 即使是 404 也認為是錯誤
+                 throw new Error(result.message || `HTTP 錯誤: ${response.status}`);
+            }
+            showStatusMessage(listStatusMsg, result.message || '刪除成功！', true);
+            fetchAndDisplaySerials(); // 刷新列表
+        } catch (error) {
+            console.error(`刪除序號 ${code} 失敗:`, error);
+            showStatusMessage(listStatusMsg, `刪除序號 ${code} 失敗: ${error.message}`, false);
         }
     };
 
@@ -143,7 +212,27 @@ document.addEventListener('DOMContentLoaded', () => {
     addSerialBtn.addEventListener('click', addSerial);
     refreshListBtn.addEventListener('click', fetchAndDisplaySerials);
 
-    // --- 新增：登入邏輯 ---
+    // --- 新增：表格內按鈕的事件委派 ---
+    serialsTableBody.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.tagName === 'BUTTON' && target.classList.contains('action-btn')) {
+            const code = target.dataset.code;
+            if (!code) return; // 防禦性檢查
+
+            if (target.classList.contains('btn-disable') || target.classList.contains('btn-enable')) {
+                // 從按鈕的 data attribute 獲取當前狀態，並計算新狀態
+                const currentIsActive = target.dataset.currentActive === 'true';
+                const newIsActive = !currentIsActive;
+                updateSerialStatus(code, newIsActive);
+            } else if (target.classList.contains('btn-delete')) {
+                if (confirm(`您確定要永久刪除序號 '${code}' 嗎？此操作無法復原。`)) {
+                    deleteSerial(code);
+                }
+            }
+        }
+    });
+
+    // --- 登入邏輯 ---
     const handleLogin = () => {
         const username = usernameInput.value;
         const password = passwordInput.value;
@@ -156,8 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 登入成功後才載入序號列表
             fetchAndDisplaySerials();
         } else {
-            loginStatusMsg.textContent = '帳號或密碼錯誤！';
-            // 可以考慮清空密碼欄位
+            showStatusMessage(loginStatusMsg, '帳號或密碼錯誤！', false);
             passwordInput.value = '';
         }
     };
@@ -165,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 監聽登入按鈕點擊
     loginBtn.addEventListener('click', handleLogin);
 
-    // 可以選擇性地增加 Enter 鍵觸發登入
+    // Enter 鍵觸發登入
     passwordInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
             handleLogin();
@@ -173,9 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     usernameInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
-             // 可以將焦點移到密碼欄位，或直接觸發登入
              passwordInput.focus();
-            // handleLogin(); // 或者直接登入
         }
     });
 
