@@ -76,8 +76,27 @@ document.addEventListener('DOMContentLoaded', () => {
             serials.forEach(serial => {
                 const row = serialsTableBody.insertRow();
 
-                // 只要 is_active 為 true 就顯示有效
-                let displayIsActive = serial.is_active;
+                let displayIsActive = true; // 預設有效
+
+                // 固定到期日判斷
+                if (serial.expires_at) {
+                    const expiresDate = new Date(serial.expires_at);
+                    if (!isNaN(expiresDate.getTime()) && expiresDate < now) {
+                        displayIsActive = false;
+                    }
+                }
+
+                // 已啟動且有有效分鐘數，判斷是否過期
+                if (displayIsActive && serial.used_at && serial.duration_minutes) {
+                    const activatedDate = new Date(serial.used_at);
+                    const durationMillis = serial.duration_minutes * 60 * 1000;
+                    if (!isNaN(activatedDate.getTime())) {
+                        const calculatedExpiry = new Date(activatedDate.getTime() + durationMillis);
+                        if (calculatedExpiry < now) {
+                            displayIsActive = false;
+                        }
+                    }
+                }
 
                 row.innerHTML = `
                     <td>${serial.serial_key || '-'}</td>
