@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP 錯誤！ 狀態: ${response.status}. ${errorData.message || ''}`);
             }
             const serials = await response.json();
+            console.log(serials); // debug: 輸出所有序號資料
 
             serialsTableBody.innerHTML = ''; // 清空表格
 
