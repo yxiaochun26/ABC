@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP 錯誤！ 狀態: ${response.status}. ${errorData.message || ''}`);
             }
             const serials = await response.json();
-            console.log(serials); // debug: 輸出所有序號資料
+            console.log(serials);
 
             serialsTableBody.innerHTML = ''; // 清空表格
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = `
                     <td>${serial.serial_key || '-'}</td>
                     <td>${serial.duration_minutes || '-'}</td>
-                    <td>${formatDateTime(serial.activated_at)}</td>
+                    <td>${formatDateTime(serial.used_at)}</td>
                     <td>${formatDateTime(serial.expires_at)}</td>
                     <td>${displayIsActive ? '是' : '<span style="color:red;">否</span>'}</td>
                     <td>${formatDateTime(serial.created_at)}</td>
@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="action-btn btn-delete" data-code="${serial.code}">刪除</button>
                     </td>
                 `;
+
+                console.log('used_at:', serial.used_at, 'formatted:', formatDateTime(serial.used_at));
             });
 
             showStatusMessage(listStatusMsg, `列表載入成功，共 ${serials.length} 個序號。`, true);
