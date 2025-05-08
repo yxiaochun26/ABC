@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let displayIsActive = serial.is_active;
 
                 row.innerHTML = `
-                    <td>${serial.code || '-'}</td>
+                    <td>${serial.serial_key || '-'}</td>
                     <td>${serial.duration_minutes || '-'}</td>
                     <td>${formatDateTime(serial.activated_at)}</td>
                     <td>${formatDateTime(serial.expires_at)}</td>
