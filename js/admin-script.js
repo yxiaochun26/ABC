@@ -108,11 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>
                         <button
                             class="action-btn ${serial.is_active ? 'btn-disable' : 'btn-enable'}"
-                            data-code="${serial.code}"
+                            data-code="${serial.serial_key}"
                             data-current-active="${serial.is_active}">
                             ${serial.is_active ? '停用' : '啟用'}
                         </button>
-                        <button class="action-btn btn-delete" data-code="${serial.code}">刪除</button>
+                        <button class="action-btn btn-delete" data-code="${serial.serial_key}">刪除</button>
                     </td>
                 `;
 
