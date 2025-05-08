@@ -32,19 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * 格式化日期時間字串 (或返回空字串)
+     * 格式化日期時間字串 (或返回'-')
      * @param {string | null} dateString ISO 格式日期字串
      * @returns {string}
      */
     const formatDateTime = (dateString) => {
-        if (!dateString) return '';
+        if (!dateString) return '-';
         try {
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return '無效日期';
-            return date.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }); // 改用12小時制
+            if (isNaN(date.getTime())) return '-';
+            return date.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
         } catch (error) {
-            console.error('Error formatting date:', error);
-            return '格式化錯誤';
+            return '-';
         }
     };
 
@@ -74,12 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = new Date(); // 當前時間，用於比較
 
             serials.forEach(serial => {
-                console.log(serial); // debug: 輸出每一筆序號物件
                 const row = serialsTableBody.insertRow();
 
                 // --- 檢查實際有效狀態 (用於顯示) ---
-                let displayIsActive = serial.status === 'active'; // 用 status 判斷
-                // const now = new Date(); // now 移到迴圈外提高效率
+                let displayIsActive = serial.is_active; // 預設使用 DB 值
+                const now = new Date();
 
                 // 檢查固定到期日
                 if (serial.expires_at) {
@@ -103,8 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // --- 渲染表格行 ---
                 row.innerHTML = `
-                    <td>${serial.serial_key || ''}</td>
-                    <td>${serial.duration_minutes !== null && serial.duration_minutes !== undefined ? serial.duration_minutes : '-'}</td>
+                    <td>${serial.code || ''}</td>
+                    <td>${serial.duration_minutes || '-'}</td>
                     <td>${formatDateTime(serial.activated_at)}</td>
                     <td>${formatDateTime(serial.expires_at)}</td>
                     <td>${displayIsActive ? '是' : '<span style="color:red;">否</span>'}</td>
@@ -112,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>
                         <button
                             class="action-btn ${serial.is_active ? 'btn-disable' : 'btn-enable'}"
-                            data-code="${serial.serial_key}"
+                            data-code="${serial.code}"
                             data-current-active="${serial.is_active}">
                             ${serial.is_active ? '停用' : '啟用'}
                         </button>
-                        <button class="action-btn btn-delete" data-code="${serial.serial_key}">刪除</button>
+                        <button class="action-btn btn-delete" data-code="${serial.code}">刪除</button>
                     </td>
                 `;
             });
