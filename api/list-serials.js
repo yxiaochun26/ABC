@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
     try {
         client = await pool.connect();
         const result = await client.query(
-            'SELECT id, serial_key, duration_minutes, status, created_at, used_at FROM serials ORDER BY created_at DESC'
+            'SELECT id, serial_key, duration_minutes, status, activated_at, expires_at, created_at, used_at FROM serials ORDER BY created_at DESC'
         );
         res.status(200).json(result.rows);
     } catch (error) {
