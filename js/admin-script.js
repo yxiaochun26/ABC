@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = serialsTableBody.insertRow();
 
                 // --- 檢查實際有效狀態 (用於顯示) ---
-                let displayIsActive = serial.is_active; // 預設使用 DB 值
+                let displayIsActive = serial.status === 'active'; // 用 status 判斷
                 // const now = new Date(); // now 移到迴圈外提高效率
 
                 // 檢查固定到期日
