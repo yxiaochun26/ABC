@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = new Date(); // 當前時間，用於比較
 
             serials.forEach(serial => {
+                console.log(serial); // debug: 輸出每一筆序號物件
                 const row = serialsTableBody.insertRow();
 
                 // --- 檢查實際有效狀態 (用於顯示) ---
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- 渲染表格行 ---
                 row.innerHTML = `
                     <td>${serial.serial_key || ''}</td>
-                    <td>${serial.duration_minutes || '-'}</td>
+                    <td>${serial.duration_minutes !== null && serial.duration_minutes !== undefined ? serial.duration_minutes : '-'}</td>
                     <td>${formatDateTime(serial.activated_at)}</td>
                     <td>${formatDateTime(serial.expires_at)}</td>
                     <td>${displayIsActive ? '是' : '<span style="color:red;">否</span>'}</td>
