@@ -1,10 +1,12 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL_NON_POOLING,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: 5432,
+    ssl: { rejectUnauthorized: false }
 });
 
 module.exports = async (req, res) => {
@@ -44,11 +46,11 @@ module.exports = async (req, res) => {
     try {
         client = await pool.connect();
         const query = `
-            INSERT INTO serials (code, duration_minutes, expires_at, is_active)
-            VALUES ($1, $2, $3, TRUE)
+            INSERT INTO serials (serial_key, duration_minutes, expires_at, status)
+            VALUES ($1, $2, $3, $4)
         `;
         // 將 Date 物件轉為 ISO 字串給 pg，如果 expiresAt 是 null 則傳遞 null
-        const values = [code.trim(), durationMinutes, expiresAt ? expiresAt.toISOString() : null];
+        const values = [code.trim(), durationMinutes, expiresAt ? expiresAt.toISOString() : null, 'active'];
         await client.query(query, values);
 
         res.status(200).json({ success: true, message: `序號 '${code.trim()}' 新增成功！` });
