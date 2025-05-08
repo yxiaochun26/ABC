@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error('Error deleting serial:', error);
         // 這裡可以檢查是否有 FK 約束等錯誤，但暫時簡化處理
-        res.status(500).json({ success: false, message: '刪除序號時發生內部伺服器錯誤。' });
+        res.status(500).json({ success: false, message: '刪除序號時發生內部伺服器錯誤。', details: error.message });
     } finally {
         if (client) {
             client.release();
