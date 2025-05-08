@@ -2,7 +2,11 @@ const { Pool } = require('pg');
 
 // 使用環境變數中的連接字串建立連接池
 const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL_NON_POOLING,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: 5432,
     ssl: {
         rejectUnauthorized: false // 在 Vercel/Neon 上通常需要
     }
@@ -19,7 +23,7 @@ module.exports = async (req, res) => {
     try {
         client = await pool.connect();
         const result = await client.query(
-            'SELECT code, duration_minutes, activated_at, expires_at, is_active, created_at FROM serials ORDER BY created_at DESC'
+            'SELECT id, serial_key, status, created_at, used_at FROM serials ORDER BY created_at DESC'
         );
         res.status(200).json(result.rows);
     } catch (error) {
