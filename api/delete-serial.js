@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
     try {
         client = await pool.connect();
         const result = await client.query(
-            'DELETE FROM serials WHERE code = $1',
+            'DELETE FROM serials WHERE serial_key = $1',
             [code.trim()]
         );
 
